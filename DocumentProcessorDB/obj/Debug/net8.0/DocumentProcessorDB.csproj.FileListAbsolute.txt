@@ -1,0 +1,14 @@
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\bin\Debug\net8.0\DocumentProcessorDB.deps.json
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\bin\Debug\net8.0\DocumentProcessorDB.dll
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\bin\Debug\net8.0\DocumentProcessorDB.pdb
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\obj\Debug\net8.0\DocumentProcessorDB.csproj.AssemblyReference.cache
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\obj\Debug\net8.0\DocumentProcessorDB.GeneratedMSBuildEditorConfig.editorconfig
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\obj\Debug\net8.0\DocumentProcessorDB.AssemblyInfoInputs.cache
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\obj\Debug\net8.0\DocumentProcessorDB.AssemblyInfo.cs
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\obj\Debug\net8.0\DocumentProcessorDB.csproj.CoreCompileInputs.cache
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\obj\Debug\net8.0\DocumentProcessorDB.dll
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\obj\Debug\net8.0\refint\DocumentProcessorDB.dll
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\obj\Debug\net8.0\DocumentProcessorDB.pdb
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\obj\Debug\net8.0\ref\DocumentProcessorDB.dll
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\bin\Debug\net8.0\DocumentProcessorDB.runtimeconfig.json
+D:\Freelance\Harshitha\DocumentProcessorAPI\DocumentProcessorDB\obj\Debug\net8.0\DocumentProcessorDB.genruntimeconfig.cache
