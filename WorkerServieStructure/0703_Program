@@ -1,0 +1,137 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using System.Text;
+using System.Text.Json;
+using WorkerService;
+using WorkerService.DTOs;
+using WorkerService.Models;
+using System.Collections.Concurrent;
+using Microsoft.ApplicationInsights.WorkerService;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using System.Timers;
+using System.Diagnostics;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+using System.Threading.Tasks;
+using NLog;
+using OpenTelemetry.Trace;
+
+public class Program
+{
+    public static Logger _logger = NLog.LogManager.GetCurrentClassLogger();
+
+    public static async Task Main(string[] args)
+    {
+        var configurationBuilder = new ConfigurationBuilder()
+            .AddJsonFile($"appsettings.json", optional: true, reloadOnChange: true);
+
+        var configuration = configurationBuilder.Build();
+
+        var appSettings = new AppSettings();
+        appSettings.Build();
+
+        var connectionString = configuration.GetConnectionString("DocumentProcessingContext");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            Console.WriteLine("Database connection string is not configured correctly.");
+            return;
+        }
+
+        var optionsBuilder = new DbContextOptionsBuilder<DocumentProcessorContext>();
+        optionsBuilder.UseSqlServer(connectionString);
+
+        var factory = new ConnectionFactory() { HostName = "localhost" };
+        using var connection = factory.CreateConnection();
+        using var channel = connection.CreateModel();
+        channel.QueueDeclare(
+            queue: "task_queue",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null);
+
+        var workerid = Guid.NewGuid();
+        var consumer = new EventingBasicConsumer(channel);
+        consumer.Received += async (model, ea) =>
+        {
+            var body = ea.Body.ToArray();
+            var message = Encoding.UTF8.GetString(body);
+            var task = JsonSerializer.Deserialize<TaskRequest>(message);
+            Console.WriteLine($"Received task: {task.FolderNameToCombine}");
+
+            using var context = new DocumentProcessorContext(optionsBuilder.Options);
+            var workerNode = context.WorkerNode.FirstOrDefault(w => w.WorkerID == workerid);
+            if (workerNode != null)
+            {
+                workerNode.WorkingfolderName = task.FolderNameToCombine;
+                context.SaveChanges();
+            }
+        };
+
+        var utility = new GemboxUtility(context);
+        var folderpath = appSettings.SourceFolder + "\\" + task.FolderNameToCombine;
+        utility.ConvertAndMergeFilesToPDF(folderpath, workerid, false);
+        if (task.Size > 0)
+        {
+            Thread.Sleep(task.Size * 1000);
+        }
+
+        using (var dbcontext = new DocumentProcessorContext(optionsBuilder.Options))
+        {
+            var dbTask = await dbcontext.TaskManager.FirstOrDefaultAsync(x => x.CaseNumber == task.CaseNumber);
+            if (dbTask != null)
+            {
+                dbTask.ReleaseOn = DateTime.Now;
+                dbTask.ModifiedOn = DateTime.Now;
+                dbTask.ModifiedBy = "Admin";
+                dbcontext.SaveChanges();
+            }
+        }
+
+        channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+
+        Console.WriteLine("Press [enter] to exit.");
+        Console.ReadKey();
+
+        _logger.Error(ex, "An exception occurred while executing the WorkerService");
+
+        void SetTimer()
+        {
+            try
+            {
+                var aTimer = new System.Timers.Timer(30 * 60 * 1000);
+                aTimer.Elapsed += OnTimedEvent;
+                aTimer.AutoReset = true;
+                aTimer.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "An exception occurred while setting the timer.");
+            }
+        }
+
+        void OnTimedEvent(Object source, ElapsedEventArgs e)
+        {
+            try
+            {
+                using (var context = new DocumentProcessorContext(optionsBuilder.Options))
+                {
+                    var workerNode = context.WorkerNode.FirstOrDefault(w => w.WorkerID == workerid);
+                    if (workerNode != null)
+                    {
+                        workerNode.LastActiveDateTime = DateTime.Now;
+                        workerNode.Status = true;
+                        context.SaveChanges();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "An exception occurred while executing the timer event.");
+            }
+        }
+    }
+}
