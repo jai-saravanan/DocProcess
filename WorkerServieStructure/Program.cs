@@ -39,7 +39,7 @@ using (var workerContext = new DocumentProcessorContext(optionsBuilder.Options))
         WorkingFolderName = "TEST_FOLDER",
         TaskAssignedDateTime = DateTime.Now,
         LastActiveDateTime = DateTime.Now,
-        Status = "Active"
+        Status = 0
     };
     workerContext.WorkerNode.Add(workerNode);
     workerContext.SaveChanges();
@@ -77,7 +77,7 @@ consumer.Received += async (model, ea) =>
         if (workerNode != null)
         {
             workerNode.LastActiveDateTime = DateTime.Now;
-            workerNode.Status = "Active";
+            workerNode.Status = 0;
             context.SaveChanges();
         }
     }
