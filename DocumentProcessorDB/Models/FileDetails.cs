@@ -8,18 +8,21 @@ using System.Threading.Tasks;
 
 namespace DocumentProcessorDB.Models
 {
-    public class WorkerNode
+    public class FileDetails
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid WorkerID { get; set; }
-        public string WorkingFolderName { get; set; }
-        public DateTime TaskAssignedDateTime { get; set; }
-        public DateTime LastActiveDateTime { get; set; }
+        public Guid FileId { get; set; }
+
+        [ForeignKey(nameof(FolderDetails))]
+        public Guid FolderDetailsId { get; set; }
+
+        public string SourceFileName { get; set; }
 
         public byte Status { get; set; }
 
-        public ICollection<FolderDetails> FolderDetails { get; set; }
+        public string ErrorMessage { get; set; }
 
+        public FolderDetails FolderDetails { get; set; }
     }
 }

@@ -21,5 +21,7 @@ namespace DocumentProcessorDB
 
         public DbSet<TaskManager> TaskManager { get; set; } = null!;
         public DbSet<WorkerNode> WorkerNode { get; set; } = null!;
+        public DbSet<FolderDetails> FolderDetails { get; set; } = null!;
+        public DbSet<FileDetails> FileDetails { get; set; } = null!;
     }
 }
