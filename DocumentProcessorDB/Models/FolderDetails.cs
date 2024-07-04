@@ -19,13 +19,13 @@ namespace DocumentProcessorDB.Models
 
         public string SourceSubFolderName { get; set; }
 
-        public string DestinationSubFolderName { get; set; }
+        public string? DestinationSubFolderName { get; set; }
 
-        public string MergedFileName { get; set; }
+        public string? MergedFileName { get; set; }
 
         public byte Status { get; set; }
 
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         public ICollection<FileDetails> FileDetails { get; set; }
 

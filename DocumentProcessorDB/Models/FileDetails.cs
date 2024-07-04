@@ -21,7 +21,7 @@ namespace DocumentProcessorDB.Models
 
         public byte Status { get; set; }
 
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         public FolderDetails FolderDetails { get; set; }
     }
