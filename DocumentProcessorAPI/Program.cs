@@ -2,9 +2,16 @@ using DocumentProcessorDB;
 using DocumentProcessorService.Services;
 using DocumentProcessorService.Services.Implementation;
 using Microsoft.EntityFrameworkCore;
+using NLog.Web;
 using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Setup NLog for Dependency injection
+builder.Logging.ClearProviders();
+builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+builder.Host.UseNLog();
+
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<DocumentProcessorContext>(options =>

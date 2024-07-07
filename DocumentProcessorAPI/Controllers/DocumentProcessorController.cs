@@ -17,16 +17,20 @@ namespace DocumentProcessorAPI.Controllers
     {
         private readonly ITaskManagerService _taskManagerService;
         private readonly IConnectionFactory _connectionFactory;
+        private readonly ILogger<DocumentProcessorController> _logger;
 
-        public DocumentProcessorController(ITaskManagerService taskManagerService, IConnectionFactory connectionFactory)
+        public DocumentProcessorController(ITaskManagerService taskManagerService, IConnectionFactory connectionFactory,
+            ILogger<DocumentProcessorController> logger)
         {
             _taskManagerService = taskManagerService;
             _connectionFactory = connectionFactory;
+            _logger = logger;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskManager>>> GetTaskManager()
         {
+            _logger.LogInformation("GetTaskManager() Invoked");
             return await _taskManagerService.GetTaskManagerInfo();
         }
 
