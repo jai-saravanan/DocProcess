@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DocumentProcessorDB\DocumentProcessorDB.csproj" />
+    <ProjectReference Include="..\DocumentProcessorService\DocumentProcessorService.csproj" />
   </ItemGroup>
 
 </Project>

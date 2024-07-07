@@ -1,4 +1,4 @@
-﻿namespace DocumentProcessorAPI.DTOs
+﻿namespace DocumentProcessorService.Services.DTOs
 {
     public class TaskRequest
     {

@@ -1,4 +1,6 @@
 using DocumentProcessorDB;
+using DocumentProcessorService.Services;
+using DocumentProcessorService.Services.Implementation;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
 
@@ -8,6 +10,8 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<DocumentProcessorContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DocumentProcessingContext")));
 builder.Services.AddSingleton<IConnectionFactory>(new ConnectionFactory() { Uri = new Uri("amqp://guest:guest@localhost:5672") });
+builder.Services.AddScoped<IWorkerNodeService,WorkerNodeService>();
+builder.Services.AddScoped<ITaskManagerService,TaskManagerService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

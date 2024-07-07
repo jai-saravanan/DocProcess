@@ -9,5 +9,7 @@ namespace WorkerServie
     public static class CommonConstants
     {
         public const string LicenceKeyFree = "FREE-LIMITED-KEY";
+
+
     }
 }

@@ -1,10 +1,13 @@
 ﻿using DocumentProcessorDB;
 using DocumentProcessorDB.Models;
+using DocumentProcessorService;
+using DocumentProcessorService.Services;
 using GemBox.Document;
 using GemBox.Pdf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,24 +15,18 @@ namespace WorkerServie
 {
     public class GemboxUtility
     {
-        private DocumentProcessorContext _documentProcessorContext;
-        public GemboxUtility(DocumentProcessorContext documentProcessorContext)
+        private IWorkerNodeService _workerNodeService;
+        public GemboxUtility(IWorkerNodeService workerNodeService)
         {
             GemBox.Document.ComponentInfo.SetLicense(CommonConstants.LicenceKeyFree);
             GemBox.Pdf.ComponentInfo.SetLicense(CommonConstants.LicenceKeyFree);
-            _documentProcessorContext = documentProcessorContext;
+            _workerNodeService = workerNodeService;
         }
 
         public void ConvertAndMergeFilesToPDF(string folderName, bool deleteSource = false)
         {
-            WorkerNode workerNode = new WorkerNode();
-            workerNode.WorkerID = Guid.NewGuid();
-            workerNode.WorkingFolderName = folderName;
-            workerNode.TaskAssignedDateTime = DateTime.Now;
-            workerNode.LastActiveDateTime = DateTime.Now;
-            workerNode.Status = 0;
-            _documentProcessorContext.WorkerNode.Add(workerNode);
-            _documentProcessorContext.SaveChanges();
+            
+            var workerNode = _workerNodeService.SaveWorkerNodeInfo(folderName);
 
             string sourceRoot = @"D:\Freelance\Harshitha\DocProcessFolder\SouceFolder";
             string targetRoot = @"D:\Freelance\Harshitha\DocProcessFolder\TargetFolder";
@@ -45,14 +42,7 @@ namespace WorkerServie
                     {
                         var pathParts = folderToCombine.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-                        // insert folder details
-                        FolderDetails folderDetails = new FolderDetails();
-                        folderDetails.FolderId = Guid.NewGuid();
-                        folderDetails.WorkerId = workerNode.WorkerID;
-                        folderDetails.SourceSubFolderName = pathParts[^1];
-                        folderDetails.Status = 0;
-                        _documentProcessorContext.FolderDetails.Add(folderDetails);
-                        _documentProcessorContext.SaveChanges();
+                        var folderDetails = _workerNodeService.SaveFolderDetails(workerNode.WorkerID, pathParts[^1]);
 
 
                         ConvertNonPdfFilesToPDF(folderToCombine, folderDetails.FolderId);
@@ -96,11 +86,7 @@ namespace WorkerServie
                             }
                         }
 
-                        // update destination folder & pdf filepath
-                        var folderUpdate = _documentProcessorContext.FolderDetails.FirstOrDefault(x => x.FolderId == folderDetails.FolderId);
-                        folderUpdate.Status = 1;
-                        folderUpdate.DestinationSubFolderName = pathParts[^1];
-                        _documentProcessorContext.SaveChanges();
+                        _workerNodeService.UpdateFolderStatus(folderDetails.FolderId, pathParts[^1], combinedFileName);
                     }
                     catch (Exception ex)
                     {
@@ -115,14 +101,14 @@ namespace WorkerServie
             }
         }
 
-        public void ConvertNonPdfFilesToPDF(string sourceDirectory, Guid folderId)
+        public async void ConvertNonPdfFilesToPDF(string sourceDirectory, Guid folderId)
         {
             var nonPdfFiles = Directory.EnumerateFiles(sourceDirectory)
                                         .Where(x => !x.EndsWith(".pdf"))
                                         .ToList();
             foreach (var nonPdfFile in nonPdfFiles)
             {
-                byte status = 0;
+                var status = Status.NotStarted;
                 string errorMessage = null;
                 if (!IsFileEmpty(nonPdfFile))
                 {
@@ -131,28 +117,20 @@ namespace WorkerServie
                         var outputFileName = nonPdfFile.Split(".")[0] + ".pdf";
                         DocumentModel document = DocumentModel.Load(nonPdfFile);
                         document.Save(outputFileName);
-                        status = 1;
+                        status = Status.Completed;
                     }
                     catch (Exception ex)
                     {
+                        status = Status.Error;
                         errorMessage = ex.Message;
                     }
                 }
                 else
                 {
-                    status = 2;
+                    status = Status.Error;
                     errorMessage = "file is empty";
                 }
-                FileDetails fileDetails = new FileDetails();
-                fileDetails.FileId = Guid.NewGuid();
-                fileDetails.FolderDetailsId = folderId;
-                fileDetails.SourceFileName = Path.GetFileName(nonPdfFile);
-                fileDetails.Status = status;
-                fileDetails.ErrorMessage = errorMessage;
-                _documentProcessorContext.FileDetails.Add(fileDetails);
-                _documentProcessorContext.SaveChanges();
-
-
+                _workerNodeService.SaveFileDetails(folderId, status, nonPdfFile, errorMessage);
             }
         }
 

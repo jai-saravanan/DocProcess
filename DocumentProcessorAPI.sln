@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentProcessorAPI", "Doc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentProcessorDB", "DocumentProcessorDB\DocumentProcessorDB.csproj", "{9ACAF316-40CD-4915-9374-18872DAAC722}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkerServie", "WorkerServieStructure\WorkerServie.csproj", "{18C298AA-82BF-46B1-BCA2-759459D246E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerServie", "WorkerServieStructure\WorkerServie.csproj", "{18C298AA-82BF-46B1-BCA2-759459D246E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocumentProcessorService", "DocumentProcessorService\DocumentProcessorService.csproj", "{4A8B7CE1-A172-4EEE-92B8-4EB1F8B1F2BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{18C298AA-82BF-46B1-BCA2-759459D246E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18C298AA-82BF-46B1-BCA2-759459D246E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18C298AA-82BF-46B1-BCA2-759459D246E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A8B7CE1-A172-4EEE-92B8-4EB1F8B1F2BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A8B7CE1-A172-4EEE-92B8-4EB1F8B1F2BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A8B7CE1-A172-4EEE-92B8-4EB1F8B1F2BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A8B7CE1-A172-4EEE-92B8-4EB1F8B1F2BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
