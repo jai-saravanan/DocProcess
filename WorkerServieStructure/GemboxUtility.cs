@@ -2,6 +2,7 @@
 using DocumentProcessorDB.Models;
 using DocumentProcessorService;
 using DocumentProcessorService.Services;
+using DocumentProcessorService.Services.DTOs;
 using GemBox.Document;
 using GemBox.Pdf;
 using System;
@@ -23,15 +24,15 @@ namespace WorkerServie
             _workerNodeService = workerNodeService;
         }
 
-        public void ConvertAndMergeFilesToPDF(string folderName, bool deleteSource = false)
+        public void ConvertAndMergeFilesToPDF(TaskRequest taskRequest, bool deleteSource = false)
         {
-            
-            var workerNode = _workerNodeService.SaveWorkerNodeInfo(folderName);
 
-            string sourceRoot = @"D:\Freelance\Harshitha\DocProcessFolder\SouceFolder";
-            string targetRoot = @"D:\Freelance\Harshitha\DocProcessFolder\TargetFolder";
+            var workerNode = _workerNodeService.SaveWorkerNodeInfo(taskRequest);
+
+            string sourceRoot = @"D:\Freelance\Harshitha\DocProcessFolder\" + taskRequest.SourceFolderName;
+            string targetRoot = @"D:\Freelance\Harshitha\DocProcessFolder\" + taskRequest.DestinationFolderName;
             string combinedFileName = "Combined.pdf";
-            var subjectDirectory = Path.Combine(sourceRoot, folderName);
+            var subjectDirectory = Path.Combine(sourceRoot, taskRequest.FolderNameToCombine);
 
             if (Directory.Exists(subjectDirectory))
             {
@@ -47,7 +48,7 @@ namespace WorkerServie
 
                         ConvertNonPdfFilesToPDF(folderToCombine, folderDetails.FolderId);
 
-                        
+
                         var combinedFolder = Path.Combine(targetRoot, pathParts[^2], pathParts[^1]);
 
                         Directory.CreateDirectory(combinedFolder);

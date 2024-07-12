@@ -1,5 +1,6 @@
 ﻿using DocumentProcessorDB;
 using DocumentProcessorDB.Models;
+using DocumentProcessorService.Services.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -17,13 +18,15 @@ namespace DocumentProcessorService.Services.Implementation
             _documentProcessorContext = documentProcessorContext;
         }
 
-        public WorkerNode SaveWorkerNodeInfo(string folderName)
+        public WorkerNode SaveWorkerNodeInfo(TaskRequest taskRequest)
         {
             WorkerNode workerNode = new WorkerNode();
             try
             {
                 workerNode.WorkerID = Guid.NewGuid();
-                workerNode.WorkingFolderName = folderName;
+                workerNode.WorkingFolderName = taskRequest.FolderNameToCombine;
+                workerNode.SourceFolderName = taskRequest.SourceFolderName;
+                workerNode.DestinationFolderName = taskRequest.DestinationFolderName;
                 workerNode.TaskAssignedDateTime = DateTime.Now;
                 workerNode.LastActiveDateTime = DateTime.Now;
                 workerNode.Status = (byte)Status.NotStarted;

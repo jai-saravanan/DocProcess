@@ -9,12 +9,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using DocumentProcessorDB;
 using DocumentProcessorDB.Models;
-using WorkerServieStructure.DTOS;
 using WorkerServie;
 using System;
 using DocumentProcessorService.Services;
 using DocumentProcessorService.Services.Implementation;
 using System.Threading.Tasks;
+using DocumentProcessorService.Services.DTOs;
 
 class Program
 {
@@ -47,7 +47,7 @@ class Program
             {
                 var services = scope.ServiceProvider;
                 var app = services.GetRequiredService<GemboxUtility>();
-                app.ConvertAndMergeFilesToPDF(task.FolderNameToCombine);
+                app.ConvertAndMergeFilesToPDF(task);
             }
 
 

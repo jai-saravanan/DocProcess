@@ -26,6 +26,8 @@ namespace DocumentProcessorService.Services.Implementation
                 var taskManager = new TaskManager
                 {
                     CaseNumber = request?.FolderNameToCombine,
+                    DestinationFolderName = request.DestinationFolderName,
+                    SourceFolderName = request.SourceFolderName,
                     LockedBy = "Admin",
                     CreatedBy = "Admin",
                     CreatedOn = DateTime.Now,
