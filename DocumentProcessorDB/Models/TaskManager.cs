@@ -17,6 +17,12 @@ namespace DocumentProcessorDB.Models
         [MaxLength(250)]
         public string CaseNumber { get; set; }
 
+        [MaxLength(250)]
+        public string SourceFolderName { get; set; }
+
+        [MaxLength(250)]
+        public string DestinationFolderName { get; set; }
+
         [MaxLength(50)]
         public string LockedBy { get; set; }
 

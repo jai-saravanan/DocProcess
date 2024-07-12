@@ -14,6 +14,11 @@ namespace DocumentProcessorDB.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid WorkerID { get; set; }
         public string WorkingFolderName { get; set; }
+
+        public string SourceFolderName { get; set; }
+
+        public string DestinationFolderName { get; set; }
+
         public DateTime TaskAssignedDateTime { get; set; }
         public DateTime LastActiveDateTime { get; set; }
 
