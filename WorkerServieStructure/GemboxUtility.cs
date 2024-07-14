@@ -10,7 +10,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace WorkerServie
 {
@@ -29,8 +31,15 @@ namespace WorkerServie
 
         public void ConvertAndMergeFilesToPDF(TaskRequest taskRequest, bool deleteSource = false)
         {
-            _logger.LogInformation("log started");
+            _logger.LogInformation("File processing started for : " + JsonSerializer.Serialize(taskRequest));
+            if (taskRequest == null || string.IsNullOrWhiteSpace(taskRequest.FolderNameToCombine) || string.IsNullOrWhiteSpace(taskRequest.FolderNameToCombine) ||
+                string.IsNullOrWhiteSpace(taskRequest.FolderNameToCombine))
+            {
+                _logger.LogInformation("Request payload doesn't have valid information");
+                return;
+            }
             var workerNode = _workerNodeService.SaveWorkerNodeInfo(taskRequest);
+
 
             string sourceRoot = @"D:\Freelance\Harshitha\DocProcessFolder\" + taskRequest.SourceFolderName;
             string targetRoot = @"D:\Freelance\Harshitha\DocProcessFolder\" + taskRequest.DestinationFolderName;
@@ -40,6 +49,12 @@ namespace WorkerServie
             if (Directory.Exists(subjectDirectory))
             {
                 var foldersToCombine = Directory.EnumerateDirectories(subjectDirectory);
+                if (foldersToCombine == null || !foldersToCombine.Any())
+                {
+                    _logger.LogInformation("No folders or file found inside the specific folder. Folder name: " + taskRequest, foldersToCombine);
+                    return;
+                }
+
                 foreach (var folderToCombine in foldersToCombine)
                 {
                     try
@@ -59,6 +74,12 @@ namespace WorkerServie
                                              .Where(x => x.EndsWith(".pdf"))
                                              .OrderBy(x => x)
                                              .ToList();
+                        _logger.LogInformation(string.Format($"Total pdf file count. Folder Name: {folderToCombine}, Files Count: {files?.Count()}"));
+                        if(files == null || !files.Any())
+                        {
+                            _logger.LogInformation("No pdf files found. Folder Name: " + folderToCombine);
+                            return;
+                        }
                         if (files.Count() == 1)
                         {
                             File.Copy(files.First(),
@@ -94,6 +115,7 @@ namespace WorkerServie
                     }
                     catch (Exception ex)
                     {
+                        _logger.LogError("Getting error while processing the document. Error: " + JsonSerializer.Serialize(ex));
                     }
 
                 }
@@ -103,6 +125,11 @@ namespace WorkerServie
                     Directory.Delete(subjectDirectory, true);
                 }
             }
+            else
+            {
+                _logger.LogInformation("Folder name not exist");
+                return;
+            }
         }
 
         public async void ConvertNonPdfFilesToPDF(string sourceDirectory, Guid folderId)
@@ -110,6 +137,11 @@ namespace WorkerServie
             var nonPdfFiles = Directory.EnumerateFiles(sourceDirectory)
                                         .Where(x => !x.EndsWith(".pdf"))
                                         .ToList();
+            if (nonPdfFiles == null || !nonPdfFiles.Any())
+            {
+                _logger.LogInformation("No non pdf files found inside the directory. directory name: " + sourceDirectory);
+                return;
+            }
             foreach (var nonPdfFile in nonPdfFiles)
             {
                 var status = Status.NotStarted;
@@ -125,12 +157,14 @@ namespace WorkerServie
                     }
                     catch (Exception ex)
                     {
+                        _logger.LogError("Getting error while converting pdf. Error: " + JsonSerializer.Serialize(ex));
                         status = Status.Error;
                         errorMessage = ex.Message;
                     }
                 }
                 else
                 {
+                    _logger.LogInformation("File is empty. File path: " + nonPdfFile);
                     status = Status.Error;
                     errorMessage = "file is empty";
                 }
