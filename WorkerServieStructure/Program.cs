@@ -15,6 +15,7 @@ using DocumentProcessorService.Services;
 using DocumentProcessorService.Services.Implementation;
 using System.Threading.Tasks;
 using DocumentProcessorService.Services.DTOs;
+using NLog.Extensions.Logging;
 
 class Program
 {
@@ -73,6 +74,12 @@ class Program
                 {
                     config.SetBasePath(Directory.GetCurrentDirectory());
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                })
+                .ConfigureLogging(logging =>
+                {
+                    logging.ClearProviders();
+                    logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+                    logging.AddNLog();
                 })
                 .ConfigureServices((context, services) =>
                 {

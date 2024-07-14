@@ -16,17 +16,20 @@ namespace WorkerServie
 {
     public class GemboxUtility
     {
+        private readonly ILogger<GemboxUtility> _logger;
         private IWorkerNodeService _workerNodeService;
-        public GemboxUtility(IWorkerNodeService workerNodeService)
+        public GemboxUtility(IWorkerNodeService workerNodeService, ILogger<GemboxUtility> logger)
         {
             GemBox.Document.ComponentInfo.SetLicense(CommonConstants.LicenceKeyFree);
             GemBox.Pdf.ComponentInfo.SetLicense(CommonConstants.LicenceKeyFree);
             _workerNodeService = workerNodeService;
+            _logger = logger;
         }
+
 
         public void ConvertAndMergeFilesToPDF(TaskRequest taskRequest, bool deleteSource = false)
         {
-
+            _logger.LogInformation("log started");
             var workerNode = _workerNodeService.SaveWorkerNodeInfo(taskRequest);
 
             string sourceRoot = @"D:\Freelance\Harshitha\DocProcessFolder\" + taskRequest.SourceFolderName;
