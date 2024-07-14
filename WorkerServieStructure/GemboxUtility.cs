@@ -43,7 +43,6 @@ namespace WorkerServie
 
             string sourceRoot = @"D:\Freelance\Harshitha\DocProcessFolder\" + taskRequest.SourceFolderName;
             string targetRoot = @"D:\Freelance\Harshitha\DocProcessFolder\" + taskRequest.DestinationFolderName;
-            string combinedFileName = "Combined.pdf";
             var subjectDirectory = Path.Combine(sourceRoot, taskRequest.FolderNameToCombine);
 
             if (Directory.Exists(subjectDirectory))
@@ -62,56 +61,13 @@ namespace WorkerServie
                         var pathParts = folderToCombine.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
                         var folderDetails = _workerNodeService.SaveFolderDetails(workerNode.WorkerID, pathParts[^1]);
-
-
-                        ConvertNonPdfFilesToPDF(folderToCombine, folderDetails.FolderId);
-
-
                         var combinedFolder = Path.Combine(targetRoot, pathParts[^2], pathParts[^1]);
 
                         Directory.CreateDirectory(combinedFolder);
-                        var files = Directory.EnumerateFiles(folderToCombine)
-                                             .Where(x => x.EndsWith(".pdf"))
-                                             .OrderBy(x => x)
-                                             .ToList();
-                        _logger.LogInformation(string.Format($"Total pdf file count. Folder Name: {folderToCombine}, Files Count: {files?.Count()}"));
-                        if(files == null || !files.Any())
-                        {
-                            _logger.LogInformation("No pdf files found. Folder Name: " + folderToCombine);
-                            return;
-                        }
-                        if (files.Count() == 1)
-                        {
-                            File.Copy(files.First(),
-                                      Path.Combine(combinedFolder, combinedFileName),
-                                      true);
-                        }
-                        else if (files.Count() > 1)
-                        {
-                            using (var document = new PdfDocument())
-                            {
-                                int fileCounter = 0;
-                                int chunkSize = 50;
-                                foreach (var fileName in files)
-                                {
-                                    using (var source = PdfDocument.Load(fileName))
-                                    {
-                                        document.Pages.Kids.AddClone(source.Pages);
-                                    }
-                                    ++fileCounter;
-                                    if (fileCounter % chunkSize == 0)
-                                    {
-                                        // Save the new pages that were added after the document was last saved
-                                        document.Save();
-                                        // Clear previously parsed pages and thus free memory necessary for further processing
-                                        document.Unload();
-                                    }
-                                }
-                                document.Save();
-                            }
-                        }
 
-                        _workerNodeService.UpdateFolderStatus(folderDetails.FolderId, pathParts[^1], combinedFileName);
+                        ConvertNonPdfFilesToPDF(folderToCombine, combinedFolder, folderDetails.FolderId, taskRequest.MaxPageCount);
+
+                        _workerNodeService.UpdateFolderStatus(folderDetails.FolderId, pathParts[^1], "merged.pdf");
                     }
                     catch (Exception ex)
                     {
@@ -132,44 +88,52 @@ namespace WorkerServie
             }
         }
 
-        public async void ConvertNonPdfFilesToPDF(string sourceDirectory, Guid folderId)
+        public async void ConvertNonPdfFilesToPDF(string sourceDirectory, string combinedFolder, Guid folderId, int maxPageCount)
         {
             var nonPdfFiles = Directory.EnumerateFiles(sourceDirectory)
                                         .Where(x => !x.EndsWith(".pdf"))
                                         .ToList();
+
             if (nonPdfFiles == null || !nonPdfFiles.Any())
             {
                 _logger.LogInformation("No non pdf files found inside the directory. directory name: " + sourceDirectory);
                 return;
             }
-            foreach (var nonPdfFile in nonPdfFiles)
+
+            var combinedDocument = new DocumentModel();
+            foreach (var filePath in nonPdfFiles)
             {
                 var status = Status.NotStarted;
                 string errorMessage = null;
-                if (!IsFileEmpty(nonPdfFile))
+                if (!IsFileEmpty(filePath))
                 {
-                    try
-                    {
-                        var outputFileName = nonPdfFile.Split(".")[0] + ".pdf";
-                        DocumentModel document = DocumentModel.Load(nonPdfFile);
-                        document.Save(outputFileName);
-                        status = Status.Completed;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError("Getting error while converting pdf. Error: " + JsonSerializer.Serialize(ex));
-                        status = Status.Error;
-                        errorMessage = ex.Message;
-                    }
+                    // Load each Word document.
+                    var document = DocumentModel.Load(filePath);
+
+                    // Import the content of the loaded document into the combined document.
+                    combinedDocument.Content.End.InsertRange(document.Content);
+                    status = Status.Completed;
                 }
                 else
                 {
-                    _logger.LogInformation("File is empty. File path: " + nonPdfFile);
+                    _logger.LogInformation("File is empty. File path: " + filePath);
                     status = Status.Error;
                     errorMessage = "file is empty";
                 }
-                _workerNodeService.SaveFileDetails(folderId, status, nonPdfFile, errorMessage);
+                _workerNodeService.SaveFileDetails(folderId, status, filePath, errorMessage);
             }
+            var paginator = combinedDocument.GetPaginator();
+            if(paginator.Pages == null || !paginator.Pages.Any())
+            {
+                _logger.LogInformation("No pdf file created");
+            }
+            else
+            {
+                // take 100 pages or if pdf file contains only 2, then it will take 2 page
+                paginator.GetRange(0, Math.Min(paginator.Pages.Count, maxPageCount)).Save(combinedFolder + "\\merged.pdf");
+            }
+            
+
         }
 
         public bool IsFileEmpty(string filePath)

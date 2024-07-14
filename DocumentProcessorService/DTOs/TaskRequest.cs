@@ -7,5 +7,7 @@
         public string SourceFolderName { get; set; }
 
         public string DestinationFolderName { get; set; }
+
+        public int MaxPageCount { get; set; }
     }
 }
