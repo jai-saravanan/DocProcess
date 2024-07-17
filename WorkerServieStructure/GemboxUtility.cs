@@ -45,6 +45,8 @@ namespace WorkerServie
             string targetRoot = @"D:\Freelance\Harshitha\DocProcessFolder\" + taskRequest.DestinationFolderName;
             var subjectDirectory = Path.Combine(sourceRoot, taskRequest.FolderNameToCombine);
 
+            // cooents
+
             if (Directory.Exists(subjectDirectory))
             {
                 var foldersToCombine = Directory.EnumerateDirectories(subjectDirectory);
